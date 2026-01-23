@@ -7,6 +7,7 @@
 /Users/stankoo/Documents/Zastita19370/obj/Debug/net10.0/Zastita19370.AssemblyInfoInputs.cache
 /Users/stankoo/Documents/Zastita19370/obj/Debug/net10.0/Zastita19370.AssemblyInfo.cs
 /Users/stankoo/Documents/Zastita19370/obj/Debug/net10.0/Zastita19370.csproj.CoreCompileInputs.cache
+/Users/stankoo/Documents/Zastita19370/obj/Debug/net10.0/Zastita19370.sourcelink.json
 /Users/stankoo/Documents/Zastita19370/obj/Debug/net10.0/Zastita19370.dll
 /Users/stankoo/Documents/Zastita19370/obj/Debug/net10.0/refint/Zastita19370.dll
 /Users/stankoo/Documents/Zastita19370/obj/Debug/net10.0/Zastita19370.pdb

@@ -1,0 +1,8 @@
+{
+  "Filename": "test.txt",
+  "FileSize": 70,
+  "CreatedDate": "2026-01-23 11:35:22",
+  "EncryptionAlgorithm": "Railfence",
+  "HashAlgorithm": "Tiger (SHA1)",
+  "FileHash": "6af0d0a9601afb4769f2483eeaee14de5c8d42e4"
+}
