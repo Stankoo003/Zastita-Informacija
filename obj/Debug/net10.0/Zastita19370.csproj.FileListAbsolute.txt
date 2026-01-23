@@ -1,0 +1,14 @@
+/Users/stankoo/Documents/Zastita19370/bin/Debug/net10.0/Zastita19370
+/Users/stankoo/Documents/Zastita19370/bin/Debug/net10.0/Zastita19370.deps.json
+/Users/stankoo/Documents/Zastita19370/bin/Debug/net10.0/Zastita19370.runtimeconfig.json
+/Users/stankoo/Documents/Zastita19370/bin/Debug/net10.0/Zastita19370.dll
+/Users/stankoo/Documents/Zastita19370/bin/Debug/net10.0/Zastita19370.pdb
+/Users/stankoo/Documents/Zastita19370/obj/Debug/net10.0/Zastita19370.GeneratedMSBuildEditorConfig.editorconfig
+/Users/stankoo/Documents/Zastita19370/obj/Debug/net10.0/Zastita19370.AssemblyInfoInputs.cache
+/Users/stankoo/Documents/Zastita19370/obj/Debug/net10.0/Zastita19370.AssemblyInfo.cs
+/Users/stankoo/Documents/Zastita19370/obj/Debug/net10.0/Zastita19370.csproj.CoreCompileInputs.cache
+/Users/stankoo/Documents/Zastita19370/obj/Debug/net10.0/Zastita19370.dll
+/Users/stankoo/Documents/Zastita19370/obj/Debug/net10.0/refint/Zastita19370.dll
+/Users/stankoo/Documents/Zastita19370/obj/Debug/net10.0/Zastita19370.pdb
+/Users/stankoo/Documents/Zastita19370/obj/Debug/net10.0/Zastita19370.genruntimeconfig.cache
+/Users/stankoo/Documents/Zastita19370/obj/Debug/net10.0/ref/Zastita19370.dll
