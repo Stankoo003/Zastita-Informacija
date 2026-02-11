@@ -58,12 +58,12 @@ class ProgramConsole
                     Network.TCPClient.SendFile(sendFile);
                     break;
                 case "4":
-                    Console.Write("Port za slušanje (default 5000): ");
-                    string portStr = Console.ReadLine() ?? "5000";
-                    if (int.TryParse(portStr, out int port))
-                        Network.TCPServer.StartServer(port);
-                    else
-                        Console.WriteLine("Pogrešan port!");
+                    // Console.Write("Port za slušanje (default 5000): ");
+                    // string portStr = Console.ReadLine() ?? "5000";
+                    // if (int.TryParse(portStr, out int port))
+                    // //    Network.TCPServer.StartServer(port);
+                    // else
+                    //             Console.WriteLine("Pogrešan port!");
                     break;
                 case "5":
                     running = false;

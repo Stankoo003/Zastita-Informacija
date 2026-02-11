@@ -29,7 +29,6 @@
                 <select class="form-select" id="algorithmSelect">
                   <option value="XXTEA-CBC">XXTEA-CBC</option>
                   <option value="Railfence">Railfence</option>
-                  <option value="Tiger hash">Railfence</option>
                 </select>
               </div>
 
@@ -39,6 +38,9 @@
                 </button>
                 <button class="btn btn-success" id="decryptBtn">
                   🔓 Dekriptuj fajl
+                </button>
+                <button class="btn btn-secondary" id="hashBtn">
+                  #️⃣ Izračunaj Tiger Hash
                 </button>
               </div>
             </div>
@@ -62,7 +64,7 @@
                       type="number"
                       class="form-control"
                       id="portInput"
-                      value="5000"
+                      value="5555"
                     />
                   </div>
                 </div>
@@ -77,6 +79,41 @@
                 </div>
               </div>
             </div>
+                        <div class="card mt-4">
+              <div class="card-body">
+                <h5 class="card-title">File System Watcher (FSW)</h5>
+
+                <div class="mb-3">
+                  <label for="targetPathInput" class="form-label">Target folder:</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="targetPathInput"
+                    value="target"
+                  />
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Algoritam za FSW:</label>
+                  <select class="form-select" id="fswAlgorithmSelect">
+                    <option value="XXTEA-CBC">XXTEA-CBC</option>
+                    <option value="Railfence">Railfence</option>
+                  </select>
+                </div>
+
+                <div class="d-grid gap-2">
+                  <button class="btn btn-success" id="startFswBtn">
+                    👁️ Pokreni FSW
+                  </button>
+                  <button class="btn btn-danger" id="stopFswBtn">
+                    ⏹️ Zaustavi FSW
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card mt-4">
+
 
             <div class="card mt-4">
               <div class="card-body">
@@ -90,7 +127,7 @@
                     font-family: monospace;
                   "
                 >
-                  <!-- Ovde će biti log poruke -->
+
                 </div>
               </div>
             </div>

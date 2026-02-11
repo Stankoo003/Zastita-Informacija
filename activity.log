@@ -30,3 +30,179 @@
 [2026-01-23 12:06:42] Generisan inicijalizacijski vektor (IV)
 [2026-02-10 23:33:26] Generisan ključ za XXTEA enkripciju
 [2026-02-10 23:33:26] Generisan inicijalizacijski vektor (IV)
+[2026-02-11 03:12:13] TCP Server pokrenut na portu 5000
+[2026-02-11 03:13:25] TCP Server pokrenut na portu 5000
+[2026-02-11 03:13:41] TCP Server pokrenut na portu 5000
+[2026-02-11 03:15:16] TCP Server pokrenut na portu 5000
+[2026-02-11 03:15:27] Povezivanje na server port 5000...
+[2026-02-11 03:15:27] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.enc
+[2026-02-11 03:15:44] TCP Server pokrenut na portu 5000
+[2026-02-11 03:15:49] Povezivanje na server port 5000...
+[2026-02-11 03:15:49] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.enc
+[2026-02-11 03:15:51] Povezivanje na server port 5000...
+[2026-02-11 03:15:51] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.enc
+[2026-02-11 03:16:08] Povezivanje na server port 5000...
+[2026-02-11 03:16:08] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt
+[2026-02-11 03:16:28] TCP Server pokrenut na portu 5000
+[2026-02-11 03:16:30] Povezivanje na server port 5000...
+[2026-02-11 03:16:30] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt
+[2026-02-11 03:16:31] Povezivanje na server port 5000...
+[2026-02-11 03:16:31] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt
+[2026-02-11 03:16:37] TCP Server pokrenut na portu 5000
+[2026-02-11 03:16:40] Povezivanje na server port 5000...
+[2026-02-11 03:16:40] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt
+[2026-02-11 03:19:23] TCP Server pokrenut na portu 5000
+[2026-02-11 03:19:26] TCP Server pokrenut na portu 5000
+[2026-02-11 03:19:29] Povezivanje na server port 5000...
+[2026-02-11 03:19:29] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt
+[2026-02-11 03:19:50] Povezivanje na server port 5000...
+[2026-02-11 03:19:50] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt
+[2026-02-11 03:50:08] TCP Server pokrenut na portu 5000
+[2026-02-11 03:50:11] Povezivanje na server port 5000...
+[2026-02-11 03:50:11] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt
+[2026-02-11 03:50:35] TCP Server pokrenut na portu 5555
+[2026-02-11 03:50:38] Povezivanje na server port 5555...
+[2026-02-11 03:50:38] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt
+[2026-02-11 03:50:38] TCP Server zatvoren
+[2026-02-11 03:55:15] TCP Server pokrenut na portu 5555
+[2026-02-11 03:55:23] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 03:55:23] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt
+[2026-02-11 03:55:23] TCP Server zatvoren
+[2026-02-11 03:55:27] TCP Send greška: Connection refused [::ffff:127.0.0.1]:5555
+[2026-02-11 03:57:06] TCP Send greška: Connection refused [::ffff:127.0.0.1]:5555
+[2026-02-11 03:57:11] TCP Server pokrenut na portu 5555
+[2026-02-11 03:57:12] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 03:57:13] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt
+[2026-02-11 03:57:13] TCP Server zatvoren
+[2026-02-11 03:57:22] TCP Server pokrenut na portu 5555
+[2026-02-11 03:57:26] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 03:57:26] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt
+[2026-02-11 03:57:26] TCP Server zatvoren
+[2026-02-11 03:59:34] TCP Server pokrenut na portu 5555
+[2026-02-11 04:03:37] TCP Server pokrenut na portu 5555
+[2026-02-11 04:05:02] TCP Server pokrenut na portu 5555
+[2026-02-11 04:07:35] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 04:07:35] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt.enc
+[2026-02-11 04:07:35] Zapisao datoteku: received_test.txt
+[2026-02-11 04:07:35] TCP Server zatvoren
+[2026-02-11 04:07:50] TCP Server pokrenut na portu 5555
+[2026-02-11 04:07:54] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 04:07:54] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt.enc
+[2026-02-11 04:07:54] Zapisao datoteku: received_test.txt
+[2026-02-11 04:07:54] TCP Server zatvoren
+[2026-02-11 04:08:26] TCP Send greška: Connection refused [::ffff:127.0.0.1]:5555
+[2026-02-11 04:08:29] TCP Send greška: Connection refused [::ffff:127.0.0.1]:5555
+[2026-02-11 04:11:01] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 04:11:01] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt.enc
+[2026-02-11 04:11:01] Zapisao datoteku: received_test.txt
+[2026-02-11 04:11:01] TCP Server zatvoren
+[2026-02-11 04:12:55] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 04:12:55] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt.enc
+[2026-02-11 04:12:55] Zapisao datoteku: received_test.txt
+[2026-02-11 04:12:55] TCP Server zatvoren
+[2026-02-11 04:13:29] TCP Send greška: Connection refused [::ffff:127.0.0.1]:5555
+[2026-02-11 04:13:41] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 04:13:41] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt.enc
+[2026-02-11 04:13:41] Zapisao datoteku: received_test.txt
+[2026-02-11 04:13:41] TCP Server zatvoren
+[2026-02-11 04:27:22] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 04:27:22] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/Thumbnail.png.enc
+[2026-02-11 04:27:22] Zapisao datoteku: received_Thumbnail.png
+[2026-02-11 04:27:22] TCP Server zatvoren
+[2026-02-11 04:27:47] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 04:27:47] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/Thumbnail.png.enc
+[2026-02-11 04:27:47] Zapisao datoteku: received_Thumbnail.png
+[2026-02-11 04:27:47] TCP Server zatvoren
+[2026-02-11 04:27:56] TCP Send greška: Connection refused [::ffff:127.0.0.1]:5555
+[2026-02-11 04:28:10] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 04:28:10] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/Thumbnail.png.enc
+[2026-02-11 04:28:10] Zapisao datoteku: received_Thumbnail.png
+[2026-02-11 04:28:10] TCP Server zatvoren
+[2026-02-11 04:28:56] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 04:28:56] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt.enc
+[2026-02-11 04:28:56] Zapisao datoteku: received_test.txt
+[2026-02-11 04:28:56] TCP Server zatvoren
+[2026-02-11 04:43:31] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 04:43:31] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt.enc
+[2026-02-11 04:43:31] Zapisao datoteku: received_test.txt
+[2026-02-11 04:43:31] TCP Server zatvoren
+[2026-02-11 04:45:42] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 04:45:42] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt.enc
+[2026-02-11 04:45:42] Zapisao datoteku: received_test.txt
+[2026-02-11 04:45:42] TCP Server zatvoren
+[2026-02-11 04:47:02] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 04:47:02] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt.enc
+[2026-02-11 04:47:02] Zapisao datoteku: received_test.txt
+[2026-02-11 04:47:02] TCP Server zatvoren
+[2026-02-11 05:02:18] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 05:02:18] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt.enc
+[2026-02-11 05:02:18] Zapisao datoteku: received_test.txt
+[2026-02-11 05:02:18] TCP Server zatvoren
+[2026-02-11 05:03:13] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 05:03:13] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt.enc
+[2026-02-11 05:03:13] Zapisao datoteku: received_test.txt
+[2026-02-11 05:03:13] TCP Server zatvoren
+[2026-02-11 05:08:06] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 05:08:06] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt.enc
+[2026-02-11 05:08:06] Zapisao datoteku: received_test.txt
+[2026-02-11 05:08:06] TCP Server zatvoren
+[2026-02-11 05:10:46] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 05:10:46] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt.enc
+[2026-02-11 05:10:46] Zapisao datoteku: received_test.txt
+[2026-02-11 05:10:46] TCP Server zatvoren
+[2026-02-11 05:13:26] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 05:13:26] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt.enc
+[2026-02-11 05:13:26] Zapisao datoteku: received_test.txt
+[2026-02-11 05:13:26] TCP Server zatvoren
+[2026-02-11 05:16:16] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 05:16:16] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt.enc
+[2026-02-11 05:16:16] Zapisao datoteku: received_test.txt
+[2026-02-11 05:16:16] TCP Server zatvoren
+[2026-02-11 05:19:33] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 05:19:33] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt.enc
+[2026-02-11 05:19:33] Zapisao datoteku: received_test.txt
+[2026-02-11 05:19:33] TCP Server zatvoren
+[2026-02-11 05:20:56] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 05:20:57] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt.enc
+[2026-02-11 05:20:57] Zapisao datoteku: received_test.txt
+[2026-02-11 05:20:57] TCP Server zatvoren
+[2026-02-11 05:22:12] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 05:22:12] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt.enc
+[2026-02-11 05:22:12] Zapisao datoteku: received_test.txt
+[2026-02-11 05:22:12] TCP Server zatvoren
+[2026-02-11 05:23:30] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 05:23:30] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt.enc
+[2026-02-11 05:23:30] Zapisao datoteku: received_test.txt
+[2026-02-11 05:23:30] TCP Server zatvoren
+[2026-02-11 05:26:32] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 05:26:32] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/test.txt.enc
+[2026-02-11 05:26:32] Zapisao datoteku: received_test.txt
+[2026-02-11 05:26:32] TCP Server zatvoren
+[2026-02-11 05:31:52] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 05:31:52] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/2.jpg.enc
+[2026-02-11 05:31:52] Zapisao datoteku: received_2.jpg
+[2026-02-11 05:31:52] TCP Server zatvoren
+[2026-02-11 05:32:23] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 05:32:23] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/2.jpg.enc
+[2026-02-11 05:32:23] Zapisao datoteku: received_2.jpg
+[2026-02-11 05:32:23] TCP Server zatvoren
+[2026-02-11 14:36:01] FSW started watching: target
+[2026-02-11 14:36:14] FSW detected file: test.txt
+[2026-02-11 14:36:14] FSW encrypted file: encrypted/test.txt.enc
+[2026-02-11 14:36:19] FSW detected file: test.txt
+[2026-02-11 14:36:19] FSW encrypted file: encrypted/test.txt.enc
+[2026-02-11 14:36:22] FSW detected file: test.txt
+[2026-02-11 14:36:22] FSW encrypted file: encrypted/test.txt.enc
+[2026-02-11 14:37:44] FSW stopped
+[2026-02-11 15:59:28] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 15:59:28] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/IMG_5700.HEIC.enc
+[2026-02-11 15:59:28] Zapisao datoteku: received_IMG_5700.HEIC
+[2026-02-11 15:59:28] TCP Server zatvoren
+[2026-02-11 16:14:03] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 16:14:03] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/2026-02-05 00-34-58.mov.enc
+[2026-02-11 16:14:03] Zapisao datoteku: received/2026-02-05 00-34-58.mov
+[2026-02-11 16:14:03] TCP Server zatvoren
+[2026-02-11 16:33:12] Povezivanje na 127.0.0.1:5555...
+[2026-02-11 16:33:13] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/Sasa Misic rils 6 - HD 1080p.mov.enc
+[2026-02-11 16:33:17] Zapisao datoteku: received/Sasa Misic rils 6 - HD 1080p.mov
+[2026-02-11 16:33:17] TCP Server zatvoren
