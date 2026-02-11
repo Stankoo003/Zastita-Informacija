@@ -2,14 +2,35 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
+
 builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
 {
     options.MultipartBodyLengthLimit = 2147483648; // 2 GB
 });
 
+// Pronađi slobodan port
+int port = 5000;
+while (port < 5010)
+{
+    if (IsPortAvailable(port))
+    {
+        Console.WriteLine($"✅ Koristim port: {port}");
+        break;
+    }
+    Console.WriteLine($"⚠️ Port {port} zauzet, probam sledeći...");
+    port++;
+}
+
+if (port >= 5010)
+{
+    Console.WriteLine("❌ Nema slobodnih portova između 5000-5010!");
+    return;
+}
+
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
     serverOptions.Limits.MaxRequestBodySize = 2147483648; // 2 GB
+    serverOptions.ListenLocalhost(port);
 });
 
 var app = builder.Build();
@@ -115,6 +136,7 @@ app.MapPost("/api/send", async (HttpRequest request) =>
         var form = await request.ReadFormAsync();
         var file = form.Files["file"];
         var algorithm = form["algorithm"].ToString(); // ← Ovo uzima algoritam iz forme
+        var ip = form["ip"].ToString() ?? "127.0.0.1";
         var port = int.Parse(form["port"].ToString() ?? "5555");
 
         if (file == null)
@@ -147,7 +169,7 @@ app.MapPost("/api/send", async (HttpRequest request) =>
         await File.WriteAllTextAsync(metadataPath, metadata);
 
         // Pošalji preko TCP-a
-        Network.TCPClient.SendFile(tempPath, "127.0.0.1", port);
+        Network.TCPClient.SendFile(tempPath, ip, port);
 
         return Results.Ok(new { success = true, message = "Fajl enkriptovan i poslat preko TCP-a" });
     }
@@ -268,3 +290,20 @@ app.MapGet("/api/fsw-status", () =>
 
 
 app.Run();
+
+// Helper funkcija za proveru porta
+static bool IsPortAvailable(int port)
+{
+    try
+    {
+        var listener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, port);
+        listener.Start();
+        listener.Stop();
+        return true;
+    }
+    catch
+    {
+        return false;
+    }
+}
+
