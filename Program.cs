@@ -97,7 +97,7 @@ app.MapPost("/api/encrypt", async (HttpRequest request) =>
 
     byte[] encrypted = CryptoHelperNamespace.CryptoHelper.EncryptData(fileData, algorithm);
     var tigerHash = new Hashing.TigerHash();
-    string hash = tigerHash.ComputeHash(encrypted); 
+    string hash = tigerHash.ComputeHash(encrypted);
 
     // ← DODAJ: Automatski sačuvaj u root
     CryptoHelperNamespace.CryptoHelper.SaveEncryptedFile(file.FileName, encrypted, algorithm);
@@ -161,14 +161,14 @@ app.MapPost("/api/send", async (HttpRequest request) =>
 
         byte[] encryptedData = CryptoHelperNamespace.CryptoHelper.EncryptData(fileData, algorithm);
         var tigerHash = new Hashing.TigerHash();
-        string fileHash = tigerHash.ComputeHash(encryptedData); 
+        string fileHash = tigerHash.ComputeHash(encryptedData);
 
-        string metadata = FileOps.MetadataHandler.CreateMetadata(
-            file.FileName,
-            encryptedData,
-            algorithm,
-            "Tiger (SHA1)",
-            fileHash
+        string metadata = FileOps.MetadataHandler.CreateCompatibleMetadata(
+        file.FileName,
+        encryptedData,
+        algorithm,
+        "Tiger-Hash",
+        fileHash
         );
 
         string tempPath = Path.Combine(Path.GetTempPath(), file.FileName + ".enc");

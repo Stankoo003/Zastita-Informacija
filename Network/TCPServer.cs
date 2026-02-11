@@ -22,11 +22,12 @@ namespace Network
                 onMessage?.Invoke($"📁 Kreiran folder: {receivedDir}");
             }
 
-            onMessage?.Invoke($"TCP Server pokrenut na portu {port}");
+            onMessage?.Invoke($"🌐 TCP Server sluša na portu {port}");
             Console.WriteLine($"🟢 Server sluša na portu {port}...");
-            Console.WriteLine("Čekam klijenta za razmenu datoteka...");
+            Console.WriteLine($"💡 Dostupan na 127.0.0.1:{port}");
 
-            TcpListener listener = new TcpListener(IPAddress.Parse("127.0.0.1"), port);
+            // ← IZMENA: Sluša na svim interfejsima
+            TcpListener listener = new TcpListener(IPAddress.Any, port);
             listener.Start();
 
             try
@@ -37,24 +38,27 @@ namespace Network
 
                 NetworkStream stream = client.GetStream();
 
-                byte[] buffer = new byte[4096];
+                // Primi metadata
+                byte[] buffer = new byte[8192];
                 int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
                 string metadataJson = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                var metadata = MetadataHandler.ReadMetadata(metadataJson);
+                
+                // ← IZMENA: Koristi KOMPATIBILNU metadata (njena struktura)
+                var metadata = MetadataHandler.ReadCompatibleMetadata(metadataJson);
 
                 // Pošalji metadata info
                 onMessage?.Invoke("📋 === METADATA ===");
-                onMessage?.Invoke($"   Fajl: {metadata.Filename}");
-                onMessage?.Invoke($"   Veličina: {metadata.FileSize} bajtova");
-                onMessage?.Invoke($"   Datum: {metadata.CreatedDate}");
-                onMessage?.Invoke($"   Algoritam: {metadata.EncryptionAlgorithm}");
+                onMessage?.Invoke($"   Fajl: {metadata.FileName}");
+                onMessage?.Invoke($"   Veličina: {metadata.SizeBytes} bajtova");
+                onMessage?.Invoke($"   Datum: {metadata.Created}");
+                onMessage?.Invoke($"   Algoritam: {metadata.Algorithm}");
                 onMessage?.Invoke($"   Hash algoritam: {metadata.HashAlgorithm}");
-                onMessage?.Invoke($"   Hash: {metadata.FileHash.Substring(0, 16)}...");
+                onMessage?.Invoke($"   Hash: {metadata.HashValue.Substring(0, Math.Min(16, metadata.HashValue.Length))}...");
                 onMessage?.Invoke("==================");
 
                 Console.WriteLine($"\n📥 PRIMALAC: Dobijena metadata:");
-                Console.WriteLine($"   Datoteka: {metadata.Filename}");
-                Console.WriteLine($"   Algoritam: {metadata.EncryptionAlgorithm}");
+                Console.WriteLine($"   Datoteka: {metadata.FileName}");
+                Console.WriteLine($"   Algoritam: {metadata.Algorithm}");
 
                 using (MemoryStream ms = new MemoryStream())
                 {
@@ -69,11 +73,15 @@ namespace Network
                     onMessage?.Invoke($"📦 Primljeno {totalBytes} bajtova");
                     Console.WriteLine($"   Primljeno {totalBytes} bajtova");
 
+                    // Verifikuj heš
                     var tigerHash = new Hashing.TigerHash();
                     string receivedHash = tigerHash.ComputeHash(encryptedData);
-                    if (receivedHash != metadata.FileHash)
+                    
+                    if (receivedHash != metadata.HashValue)
                     {
                         onMessage?.Invoke("❌ HEŠ MISMATCH!");
+                        onMessage?.Invoke($"   Očekivan: {metadata.HashValue.Substring(0, 16)}...");
+                        onMessage?.Invoke($"   Dobijen:  {receivedHash.Substring(0, 16)}...");
                         Console.WriteLine("❌ HEŠ MISMATCH!");
                         stream.Close();
                         return null;
@@ -84,22 +92,25 @@ namespace Network
 
                     try
                     {
-                        byte[] decryptedData = CryptoHelper.DecryptData(encryptedData, metadata.EncryptionAlgorithm);
+                        // ← IZMENA: Koristi metadata.Algorithm umesto EncryptionAlgorithm
+                        byte[] decryptedData = CryptoHelper.DecryptData(encryptedData, metadata.Algorithm);
 
-                        // ← OVDE JE PROMENA: čuvaj u received folder
-                        string receivedPath = Path.Combine(receivedDir, metadata.Filename);
+                        // Sačuvaj u received folder
+                        string receivedPath = Path.Combine(receivedDir, metadata.FileName);
                         FileHandler.WriteFile(receivedPath, decryptedData);
 
                         onMessage?.Invoke($"🎉 USPEŠNO! Dekriptovano: {receivedPath}");
                         Console.WriteLine($"\n🎉 USPEŠNO! Datoteka dekriptovana:");
                         Console.WriteLine($"   {receivedPath}");
 
-                        return metadataJson; // Vrati metadata JSON
+                        Logger.Log($"Received and decrypted: {receivedPath}");
+                        return metadataJson;
                     }
                     catch (Exception ex)
                     {
                         onMessage?.Invoke($"❌ Greška pri dekriptovanju: {ex.Message}");
                         Console.WriteLine($"❌ Greška pri dekriptovanju: {ex.Message}");
+                        Logger.Log($"Decryption error: {ex.Message}");
                     }
                 }
 
@@ -109,8 +120,8 @@ namespace Network
             finally
             {
                 listener.Stop();
-                onMessage?.Invoke("TCP Server zatvoren");
-                Logger.Log("TCP Server zatvoren");
+                onMessage?.Invoke("⏹️ TCP Server zatvoren");
+                Logger.Log("TCP Server closed");
             }
 
             return null;

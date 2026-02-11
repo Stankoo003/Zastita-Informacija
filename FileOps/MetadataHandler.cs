@@ -2,38 +2,80 @@ using System;
 using System.IO;
 using System.Text.Json;
 
-namespace FileOps{
-public class Metadata
+namespace FileOps
 {
-    public string Filename { get; set; }
-    public long FileSize { get; set; }
-    public string CreatedDate { get; set; }
-    public string EncryptionAlgorithm { get; set; }
-    public string HashAlgorithm { get; set; }
-    public string FileHash { get; set; }
-}
-
-public class MetadataHandler
-{
-    public static string CreateMetadata(string originalFilename, byte[] fileData, 
-        string encryptAlgorithm, string hashAlgorithm, string fileHash)
+    // Tvoja klasa (za kompatibilnost unutar projekta)
+    public class Metadata
     {
-        var metadata = new Metadata
+        public string Filename { get; set; } = "";
+        public long FileSize { get; set; }
+        public string CreatedDate { get; set; } = "";
+        public string EncryptionAlgorithm { get; set; } = "";
+        public string HashAlgorithm { get; set; } = "";
+        public string FileHash { get; set; } = "";
+    }
+
+    // NJENA klasa (za kompatibilnost sa koleginicom)
+    public class FileMetaData
+    {
+        public string FileName { get; set; } = "";
+        public long SizeBytes { get; set; }
+        public DateTime Created { get; set; }
+        public string Algorithm { get; set; } = "";
+        public string HashAlgorithm { get; set; } = "";
+        public string HashValue { get; set; } = "";
+
+        public string ToJson()
         {
-            Filename = Path.GetFileName(originalFilename),
-            FileSize = fileData.Length,
-            CreatedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
-            EncryptionAlgorithm = encryptAlgorithm,
-            HashAlgorithm = hashAlgorithm,
-            FileHash = fileHash
-        };
-
-        return JsonSerializer.Serialize(metadata, new JsonSerializerOptions { WriteIndented = true });
+            return JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = false });
+        }
     }
 
-    public static Metadata ReadMetadata(string json)
+    public static class MetadataHandler
     {
-        return JsonSerializer.Deserialize<Metadata>(json);
+        // TVOJA verzija (za interni kod)
+        public static string CreateMetadata(string originalFilename, byte[] fileData, 
+            string encryptAlgorithm, string hashAlgorithm, string fileHash)
+        {
+            var metadata = new Metadata
+            {
+                Filename = Path.GetFileName(originalFilename),
+                FileSize = fileData.Length,
+                CreatedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                EncryptionAlgorithm = encryptAlgorithm,
+                HashAlgorithm = hashAlgorithm,
+                FileHash = fileHash
+            };
+
+            return JsonSerializer.Serialize(metadata, new JsonSerializerOptions { WriteIndented = true });
+        }
+
+        public static Metadata ReadMetadata(string json)
+        {
+            return JsonSerializer.Deserialize<Metadata>(json)!;
+        }
+
+        // NJENA verzija (za razmenu sa koleginicom)
+        public static string CreateCompatibleMetadata(string originalFilename, byte[] fileData, 
+            string algorithm, string hashAlgorithm, string hashValue)
+        {
+            var metadata = new FileMetaData
+            {
+                FileName = Path.GetFileName(originalFilename),
+                SizeBytes = fileData.Length,
+                Created = DateTime.Now,
+                Algorithm = algorithm,
+                HashAlgorithm = hashAlgorithm,
+                HashValue = hashValue
+            };
+
+            return metadata.ToJson();
+        }
+
+        // Parsiranje NJENOG JSON-a
+        public static FileMetaData ReadCompatibleMetadata(string json)
+        {
+            return JsonSerializer.Deserialize<FileMetaData>(json)!;
+        }
     }
-}
 }
