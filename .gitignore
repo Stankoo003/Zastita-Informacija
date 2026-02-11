@@ -1,0 +1,24 @@
+# Folderi sa fajlovima
+received/
+target/
+encrypted/
+test_files/
+
+# .NET build folderi
+bin/
+obj/
+
+# Temporary fajlovi
+*.tmp
+*.temp
+*.enc
+*.meta
+
+# macOS
+.DS_Store
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.user
+*.suo
