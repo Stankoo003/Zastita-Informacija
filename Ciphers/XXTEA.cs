@@ -1,91 +1,142 @@
 using System;
+using System.Security.Cryptography;
 
-namespace Ciphers
+namespace CryptoHelperNamespace.Ciphers
 {
-    public class XXTEACipher
+    public class XXTEA
     {
-        private const uint DELTA = 0x9E3779B9;
+        private readonly byte[] key;
+        private const uint DELTA = 0x9e3779b9;
 
-        public static byte[] Encrypt(byte[] data, byte[] key)
+        public XXTEA(byte[] key)
         {
-            if (key.Length != 16)
-                throw new ArgumentException("Ključ mora biti 128-bitni (16 bajtova)");
-
-            byte[] encrypted = new byte[data.Length];
-            Array.Copy(data, encrypted, data.Length);
-
-            // Enkriptuj podatke u 64-bitnim blokovima
-            for (int i = 0; i < encrypted.Length; i += 8)
+            this.key = new byte[16];
+            if (key != null)
             {
-                if (i + 8 <= encrypted.Length)
-                {
-                    EncryptBlock(encrypted, i, key);
-                }
+                int len = Math.Min(key.Length, 16);
+                Array.Copy(key, 0, this.key, 0, len);
             }
-
-            return encrypted;
         }
 
-        public static byte[] Decrypt(byte[] data, byte[] key)
+        public string Name => "XXTEA";
+
+        public byte[] Encrypt(byte[] data)
         {
-            if (key.Length != 16)
-                throw new ArgumentException("Ključ mora biti 128-bitni (16 bajtova)");
+            if (data == null || data.Length == 0)
+                return Array.Empty<byte>();
 
-            byte[] decrypted = new byte[data.Length];
-            Array.Copy(data, decrypted, data.Length);
-
-            // Dekriptuj podatke u 64-bitnim blokovima
-            for (int i = 0; i < decrypted.Length; i += 8)
-            {
-                if (i + 8 <= decrypted.Length)
-                {
-                    DecryptBlock(decrypted, i, key);
-                }
-            }
-
-            return decrypted;
+            uint[] dataUints = BytesToUints(data);
+            uint[] keyUints = BytesToUints(this.key);
+            EncryptionCore(dataUints, keyUints);
+            return UintsToBytes(dataUints);
         }
 
-        private static void EncryptBlock(byte[] data, int offset, byte[] key)
+        public byte[] Decrypt(byte[] data)
         {
-            uint v0 = BitConverter.ToUInt32(data, offset);
-            uint v1 = BitConverter.ToUInt32(data, offset + 4);
+            if (data == null || data.Length == 0)
+                return Array.Empty<byte>();
+
+            if (data.Length % 4 != 0)
+                throw new Exception("Podatak mora biti deljiv sa 4!");
+
+            uint[] dataUints = BytesToUints(data);
+            uint[] keyUints = BytesToUints(this.key);
+            DecryptCore(dataUints, keyUints);
+            byte[] result = UintsToBytes(dataUints);
+            return result;
+        }
+
+        private static uint MX(uint sum, uint y, uint z, int p, uint e, uint[] k)
+        {
+            return ((z >> 5 ^ y << 2) + (y >> 3 ^ z << 4)) ^ ((sum ^ y) + (k[(p & 3) ^ e] ^ z));
+        }
+
+        private void EncryptionCore(uint[] v, uint[] k)
+        {
+            int n = v.Length;
+            if (n <= 1) return;
+
+            uint z = v[n - 1];
             uint sum = 0;
-            uint k0 = BitConverter.ToUInt32(key, 0);
-            uint k1 = BitConverter.ToUInt32(key, 4);
-            uint k2 = BitConverter.ToUInt32(key, 8);
-            uint k3 = BitConverter.ToUInt32(key, 12);
+            int q = 6 + 52 / n;
 
-            for (int i = 0; i < 32; i++)
+            for (int i = 0; i < q; i++)
             {
-                v0 += (((v1 << 4) ^ (v1 >> 5)) + v1) ^ (sum + k0);
                 sum += DELTA;
-                v1 += (((v0 << 4) ^ (v0 >> 5)) + v0) ^ (sum + k1);
+                uint e = (sum >> 2) & 3;
+                for (int p = 0; p < n - 1; p++)
+                {
+                    uint y = v[p + 1];
+                    v[p] += MX(sum, y, z, p, e, k);
+                    z = v[p];
+                }
+                uint yFirst = v[0];
+                v[n - 1] += MX(sum, yFirst, z, n - 1, e, k);
+                z = v[n - 1];
             }
-
-            Array.Copy(BitConverter.GetBytes(v0), 0, data, offset, 4);
-            Array.Copy(BitConverter.GetBytes(v1), 0, data, offset + 4, 4);
         }
 
-        private static void DecryptBlock(byte[] data, int offset, byte[] key)
+        private void DecryptCore(uint[] v, uint[] k)
         {
-            uint v0 = BitConverter.ToUInt32(data, offset);
-            uint v1 = BitConverter.ToUInt32(data, offset + 4);
-            uint sum = 0xC6EF3720; // DELTA * 32
-            uint k0 = BitConverter.ToUInt32(key, 0);
-            uint k1 = BitConverter.ToUInt32(key, 4);
-            uint k2 = BitConverter.ToUInt32(key, 8);
-            uint k3 = BitConverter.ToUInt32(key, 12);
+            int n = v.Length;
+            if (n <= 1) return;
 
-            for (int i = 0; i < 32; i++)
+            uint y = v[0];
+            int q = 6 + 52 / n;
+            uint sum = (uint)(q * DELTA);
+
+            while (sum != 0)
             {
-                v1 -= (((v0 << 4) ^ (v0 >> 5)) + v0) ^ (sum + k1);
+                uint e = (sum >> 2) & 3;
+                for (int p = n - 1; p > 0; p--)
+                {
+                    uint z = v[p - 1];
+                    v[p] -= MX(sum, y, z, p, e, k);
+                    y = v[p];
+                }
+                uint zFirst = v[n - 1];
+                v[0] -= MX(sum, y, zFirst, 0, e, k);
+                y = v[0];
                 sum -= DELTA;
-                v0 -= (((v1 << 4) ^ (v1 >> 5)) + v1) ^ (sum + k0);
             }
+        }
 
-            Array.Copy(BitConverter.GetBytes(v0), 0, data, offset, 4);
-            Array.Copy(BitConverter.GetBytes(v1), 0, data, offset + 4, 4);
+        private static uint[] BytesToUints(byte[] v)
+        {
+            int count = (v.Length + 3) / 4;
+            uint[] result = new uint[count];
+            Buffer.BlockCopy(v, 0, result, 0, v.Length);
+            return result;
+        }
+
+        private static byte[] UintsToBytes(uint[] v)
+        {
+            byte[] result = new byte[v.Length * 4];
+            Buffer.BlockCopy(v, 0, result, 0, result.Length);
+            return result;
+        }
+
+        private static byte[] AddPadding(byte[] v)
+        {
+            int padding = 4 - (v.Length % 4);
+            if (padding == 4) padding = 0;
+            byte[] padded = new byte[v.Length + padding];
+            Array.Copy(v, padded, v.Length);
+            for (int i = v.Length; i < padded.Length; i++)
+                padded[i] = (byte)padding;
+            return padded;
+        }
+
+        private static byte[] RemovePadding(byte[] v)
+        {
+            if (v.Length == 0) return v;
+            int padding = v[v.Length - 1];
+            if (padding > 4 || padding <= 0) return v;
+            for (int i = v.Length - padding; i < v.Length; i++)
+                if (v[i] != padding) return v;
+            byte[] result = new byte[v.Length - padding];
+            Array.Copy(v, result, result.Length);
+            return result;
         }
     }
 }

@@ -1,4 +1,4 @@
-using Ciphers;
+using CryptoHelperNamespace.Ciphers;
 using Hashing;
 
 namespace CryptoHelperNamespace
@@ -8,28 +8,6 @@ namespace CryptoHelperNamespace
         public static byte[] EncryptionKey { get; set; } = null!;
         public static byte[] EncryptionIV { get; set; } = null!;
 
-        public static byte[] DecryptData(byte[] encryptedData, string algorithm)
-        {
-            Console.WriteLine($"\n[DECRYPT] Algoritam: {algorithm}");
-            Console.WriteLine($"[DECRYPT] Key: {BitConverter.ToString(EncryptionKey).Substring(0, 47)}...");
-            Console.WriteLine($"[DECRYPT] IV:  {BitConverter.ToString(EncryptionIV)}");
-
-            if (algorithm == "Railfence")
-            {
-                string encryptedText = System.Text.Encoding.UTF8.GetString(encryptedData);
-                string decryptedText = RailfenceCipher.Decrypt(encryptedText, 3);
-                return System.Text.Encoding.UTF8.GetBytes(decryptedText);
-            }
-            else if (algorithm == "XXTEA+CBC" || algorithm == "XXTEA-CBC")
-            {
-                return CBCMode.Decrypt(encryptedData, EncryptionKey, EncryptionIV);
-            }
-            else
-            {
-                throw new System.ArgumentException($"Nepoznat algoritam: {algorithm}");
-            }
-        }
-
         public static byte[] EncryptData(byte[] data, string algorithm)
         {
             Console.WriteLine($"\n[ENCRYPT] Algoritam: {algorithm}");
@@ -38,20 +16,78 @@ namespace CryptoHelperNamespace
 
             if (algorithm == "Railfence")
             {
+                // Railfence radi na tekstu
                 string text = System.Text.Encoding.UTF8.GetString(data);
-                string encrypted = RailfenceCipher.Encrypt(text, 3);
-                return System.Text.Encoding.UTF8.GetBytes(encrypted);
+                var railfence = new RailFenceCipher(3);
+                byte[] encryptedBytes = railfence.Encrypt(System.Text.Encoding.UTF8.GetBytes(text));
+                return encryptedBytes;
             }
             else if (algorithm == "XXTEA-CBC" || algorithm == "XXTEA+CBC")
             {
-                return CBCMode.Encrypt(data, EncryptionKey, EncryptionIV);
+                var xxtea = new XXTEA(EncryptionKey);
+                var cbc = new CBC(xxtea, EncryptionIV);
+                return cbc.Encrypt(data);
             }
             else
             {
-                throw new System.ArgumentException($"Nepoznat algoritam: {algorithm}");
+                throw new ArgumentException($"Nepoznat algoritam: {algorithm}");
             }
         }
 
+        public static byte[] DecryptData(byte[] encryptedData, string algorithm)
+        {
+            Console.WriteLine($"\n[DECRYPT] Algoritam: {algorithm}");
+            Console.WriteLine($"[DECRYPT] Key: {BitConverter.ToString(EncryptionKey).Substring(0, 47)}...");
+            Console.WriteLine($"[DECRYPT] IV:  {BitConverter.ToString(EncryptionIV)}");
 
+            if (algorithm == "Railfence")
+            {
+                // Railfence radi na tekstu
+                var railfence = new RailFenceCipher(3);
+                byte[] decryptedBytes = railfence.Decrypt(encryptedData);
+                return decryptedBytes;
+            }
+            else if (algorithm == "XXTEA-CBC" || algorithm == "XXTEA+CBC")
+            {
+                var xxtea = new XXTEA(EncryptionKey);
+                var cbc = new CBC(xxtea, EncryptionIV);
+                return cbc.Decrypt(encryptedData);
+            }
+            else
+            {
+                throw new ArgumentException($"Nepoznat algoritam: {algorithm}");
+            }
+        }
+
+        // Bonus: Automatsko čuvanje fajlova
+        public static void SaveEncryptedFile(string filename, byte[] data, string algorithm)
+        {
+            string encryptedDir = "encrypted";
+            Directory.CreateDirectory(encryptedDir);
+            
+            string encryptedPath = Path.Combine(encryptedDir, Path.GetFileName(filename) + ".enc");
+            string metadataPath = encryptedPath + ".meta";
+            
+            File.WriteAllBytes(encryptedPath, data);
+            
+            var tigerHash = new Hashing.TigerHash(); 
+            string hash = tigerHash.ComputeHash(data);
+            string metadata = FileOps.MetadataHandler.CreateMetadata(filename, data, algorithm, "Tiger", hash);
+            File.WriteAllText(metadataPath, metadata);
+            
+            Console.WriteLine($"💾 Sačuvano: {encryptedPath}");
+        }
+
+        public static void SaveDecryptedFile(string encryptedFilename, byte[] data)
+        {
+            string decryptedDir = "decrypted";
+            Directory.CreateDirectory(decryptedDir);
+            
+            string originalName = Path.GetFileNameWithoutExtension(encryptedFilename);
+            string decryptedPath = Path.Combine(decryptedDir, originalName);
+            
+            File.WriteAllBytes(decryptedPath, data);
+            Console.WriteLine($"💾 Dekriptovano: {decryptedPath}");
+        }
     }
 }

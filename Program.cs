@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using System.Net.Sockets;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,18 +36,18 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
 
 var app = builder.Build();
 
-// Služi statičke fajlove iz wwwroot
+// Služi statičke fajlove
 app.UseStaticFiles();
 
 // Redirect na index.html
 app.MapGet("/", () => Results.Redirect("/index.html"));
 
-// API endpoint - test
+// API test
 app.MapGet("/api/test", () => new { status = "radi", timestamp = DateTime.Now });
 
-
+// Postavi globalni ključ i IV (16 bajtova za CBC!)
 byte[] key = [0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF, 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32, 0x10];
-byte[] iv = [0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0];
+byte[] iv = [0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0, 0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF]; // 16 bajtova!
 
 CryptoHelperNamespace.CryptoHelper.EncryptionKey = key;
 CryptoHelperNamespace.CryptoHelper.EncryptionIV = iv;
@@ -59,23 +60,28 @@ Console.WriteLine("================================\n");
 TestXXTEA.TestEncryptDecrypt();
 
 var serverStatus = new System.Collections.Concurrent.ConcurrentBag<string>();
-var fswStatus = new System.Collections.Concurrent.ConcurrentBag<string>(); // ← DODAJ OVO
-FileWatching.FileSystemWatcherService? fswService = null; // ← DODAJ OVO
+var fswStatus = new System.Collections.Concurrent.ConcurrentBag<string>();
+FileWatching.FileSystemWatcherService? fswService = null;
 
-// Endpoint za dobijanje statusa
+// Server status
 app.MapGet("/api/server-status", () =>
 {
     var messages = serverStatus.ToList();
-    serverStatus.Clear(); // Očisti posle čitanja
-
+    serverStatus.Clear();
     if (messages.Count > 0)
         Console.WriteLine($"[API] Vraćam {messages.Count} poruka");
-
     return Results.Ok(new { messages });
 });
 
+// FSW status
+app.MapGet("/api/fsw-status", () =>
+{
+    var messages = fswStatus.ToList();
+    fswStatus.Clear();
+    return Results.Ok(new { messages });
+});
 
-// API endpoint za enkriptovanje
+// Enkriptovanje
 app.MapPost("/api/encrypt", async (HttpRequest request) =>
 {
     var form = await request.ReadFormAsync();
@@ -89,11 +95,12 @@ app.MapPost("/api/encrypt", async (HttpRequest request) =>
     await file.CopyToAsync(ms);
     byte[] fileData = ms.ToArray();
 
-    // Enkriptuj
     byte[] encrypted = CryptoHelperNamespace.CryptoHelper.EncryptData(fileData, algorithm);
+    var tigerHash = new Hashing.TigerHash();
+    string hash = tigerHash.ComputeHash(encrypted); 
 
-    // Računaj heš
-    string hash = Hashing.TigerHash.ComputeHash(encrypted);
+    // ← DODAJ: Automatski sačuvaj u root
+    CryptoHelperNamespace.CryptoHelper.SaveEncryptedFile(file.FileName, encrypted, algorithm);
 
     return Results.Ok(new
     {
@@ -101,10 +108,12 @@ app.MapPost("/api/encrypt", async (HttpRequest request) =>
         filename = file.FileName,
         size = encrypted.Length,
         hash = hash,
-        encryptedData = Convert.ToBase64String(encrypted)
+        saved = $"encrypted/{Path.GetFileName(file.FileName)}.enc"
     });
 });
 
+
+// Dekriptovanje
 app.MapPost("/api/decrypt", async (HttpRequest request) =>
 {
     var form = await request.ReadFormAsync();
@@ -118,24 +127,28 @@ app.MapPost("/api/decrypt", async (HttpRequest request) =>
     await file.CopyToAsync(ms);
     byte[] encryptedData = ms.ToArray();
 
-    // Dekriptuj
     byte[] decrypted = CryptoHelperNamespace.CryptoHelper.DecryptData(encryptedData, algorithm);
+
+    // ← ISPRAVKA: Proslijedi IME enkriptovanog fajla (sa .enc)
+    CryptoHelperNamespace.CryptoHelper.SaveDecryptedFile(file.FileName, decrypted);
 
     return Results.Ok(new
     {
         success = true,
-        filename = file.FileName,
+        originalName = Path.GetFileNameWithoutExtension(file.FileName),
         size = decrypted.Length,
-        decryptedData = Convert.ToBase64String(decrypted)
+        saved = $"decrypted/{Path.GetFileNameWithoutExtension(file.FileName)}"
     });
 });
+
+// Slanje fajla preko TCP
 app.MapPost("/api/send", async (HttpRequest request) =>
 {
     try
     {
         var form = await request.ReadFormAsync();
         var file = form.Files["file"];
-        var algorithm = form["algorithm"].ToString(); // ← Ovo uzima algoritam iz forme
+        var algorithm = form["algorithm"].ToString();
         var ip = form["ip"].ToString() ?? "127.0.0.1";
         var port = int.Parse(form["port"].ToString() ?? "5555");
 
@@ -146,29 +159,24 @@ app.MapPost("/api/send", async (HttpRequest request) =>
         await file.CopyToAsync(ms);
         byte[] fileData = ms.ToArray();
 
-        // PRVO ENKRIPTUJ fajl
         byte[] encryptedData = CryptoHelperNamespace.CryptoHelper.EncryptData(fileData, algorithm);
+        var tigerHash = new Hashing.TigerHash();
+        string fileHash = tigerHash.ComputeHash(encryptedData); 
 
-        // Računaj heš ENKRIPTOVANIH podataka
-        string fileHash = Hashing.TigerHash.ComputeHash(encryptedData);
-
-        // Kreiraj metadata sa PRAVIM algoritmom
         string metadata = FileOps.MetadataHandler.CreateMetadata(
             file.FileName,
             encryptedData,
-            algorithm, // ← Koristi algoritam iz forme
+            algorithm,
             "Tiger (SHA1)",
             fileHash
         );
 
-        // Sačuvaj privremeno encrypted fajl i metadata
         string tempPath = Path.Combine(Path.GetTempPath(), file.FileName + ".enc");
         string metadataPath = tempPath + ".meta";
 
         await File.WriteAllBytesAsync(tempPath, encryptedData);
         await File.WriteAllTextAsync(metadataPath, metadata);
 
-        // Pošalji preko TCP-a
         Network.TCPClient.SendFile(tempPath, ip, port);
 
         return Results.Ok(new { success = true, message = "Fajl enkriptovan i poslat preko TCP-a" });
@@ -179,8 +187,7 @@ app.MapPost("/api/send", async (HttpRequest request) =>
     }
 });
 
-
-
+// Pokretanje TCP servera
 app.MapPost("/api/start-server", async (HttpRequest request) =>
 {
     try
@@ -188,13 +195,12 @@ app.MapPost("/api/start-server", async (HttpRequest request) =>
         var form = await request.ReadFormAsync();
         var port = int.Parse(form["port"].ToString() ?? "5555");
 
-        // Pokreni server sa callback-om koji dodaje poruke
         _ = Task.Run(async () =>
         {
             await Network.TCPServer.StartServerAsync(port, msg =>
             {
                 serverStatus.Add(msg);
-                Console.WriteLine($"[SERVER] Dodao poruku: {msg}"); // DEBUG
+                Console.WriteLine($"[SERVER] Dodao poruku: {msg}");
             });
         });
 
@@ -206,6 +212,7 @@ app.MapPost("/api/start-server", async (HttpRequest request) =>
     }
 });
 
+// Hashovanje
 app.MapPost("/api/hash", async (HttpRequest request) =>
 {
     try
@@ -220,7 +227,8 @@ app.MapPost("/api/hash", async (HttpRequest request) =>
         await file.CopyToAsync(ms);
         byte[] fileData = ms.ToArray();
 
-        string hash = Hashing.TigerHash.ComputeHash(fileData);
+        var tigerHash = new Hashing.TigerHash();
+        string hash = tigerHash.ComputeHash(fileData);
 
         return Results.Ok(new
         {
@@ -235,6 +243,8 @@ app.MapPost("/api/hash", async (HttpRequest request) =>
         return Results.Json(new { success = false, error = ex.Message }, statusCode: 500);
     }
 });
+
+// FSW
 app.MapPost("/api/start-fsw", async (HttpRequest request) =>
 {
     try
@@ -243,17 +253,14 @@ app.MapPost("/api/start-fsw", async (HttpRequest request) =>
         var targetPath = form["targetPath"].ToString() ?? "target";
         var algorithm = form["algorithm"].ToString() ?? "XXTEA-CBC";
 
-        // Ako već radi, zaustavi ga prvo
         fswService?.StopWatching();
 
-        // Kreiraj novi FSW servis
         fswService = new FileWatching.FileSystemWatcherService(algorithm, msg =>
         {
             fswStatus.Add(msg);
             Console.WriteLine($"[FSW] {msg}");
         });
 
-        // Pokreni praćenje
         await Task.Run(() => fswService.StartWatching(targetPath));
 
         return Results.Ok(new { success = true, message = $"FSW pokrenut za folder: {targetPath}" });
@@ -278,25 +285,14 @@ app.MapPost("/api/stop-fsw", () =>
     }
 });
 
-app.MapGet("/api/fsw-status", () =>
-{
-    var messages = fswStatus.ToList();
-    fswStatus.Clear();
-    return Results.Ok(new { messages });
-});
-
-
-
-
-
 app.Run();
 
-// Helper funkcija za proveru porta
+// Helper funkcija
 static bool IsPortAvailable(int port)
 {
     try
     {
-        var listener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, port);
+        var listener = new TcpListener(System.Net.IPAddress.Loopback, port);
         listener.Start();
         listener.Stop();
         return true;
@@ -306,4 +302,3 @@ static bool IsPortAvailable(int port)
         return false;
     }
 }
-

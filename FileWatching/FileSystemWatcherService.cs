@@ -68,7 +68,8 @@ namespace FileWatching
                 byte[] encryptedData = CryptoHelper.EncryptData(fileData, algorithm);
 
                 // Računaj heš
-                string fileHash = TigerHash.ComputeHash(encryptedData);
+                var tigerHash = new Hashing.TigerHash();
+                string receivedHash = tigerHash.ComputeHash(encryptedData);
 
                 // Kreiraj metadata
                 string metadata = MetadataHandler.CreateMetadata(
@@ -76,7 +77,7 @@ namespace FileWatching
                     encryptedData,
                     algorithm,
                     "Tiger (SHA1)",
-                    fileHash
+                    receivedHash
                 );
 
                 // Sačuvaj u encrypted folder
@@ -87,7 +88,7 @@ namespace FileWatching
                 File.WriteAllText(metadataPath, metadata);
 
                 onMessage?.Invoke($"✅ Fajl enkriptovan: {encryptedPath}");
-                onMessage?.Invoke($"🔑 Heš: {fileHash.Substring(0, 16)}...");
+                onMessage?.Invoke($"🔑 Heš: {receivedHash.Substring(0, 16)}...");
                 Logger.Log($"FSW encrypted file: {encryptedPath}");
             }
             catch (Exception ex)

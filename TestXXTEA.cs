@@ -1,53 +1,62 @@
 using System;
 using System.Text;
-using Ciphers;
+using CryptoHelperNamespace.Ciphers;
 
 public class TestXXTEA
 {
     public static void TestEncryptDecrypt()
     {
-        Console.WriteLine("\n=== TEST XXTEA ===");
+        Console.WriteLine("\n=== TEST XXTEA + CBC (Kao kod koleginice) ===");
         
         // Test podaci
-        string originalText = "Ovo je test datoteka za indeks 19370. Railfence XXTEA CBC Tiger hash.";
+        string originalText = "Ovo je test datoteka za indeks 19370. XXTEA CBC Tiger hash.";
         byte[] original = Encoding.UTF8.GetBytes(originalText);
         
-        // Ključ
+        // Ključ (16 bajtova)
         byte[] key = new byte[16] { 0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF, 
                                     0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32, 0x10 };
         
+        // IV (16 bajtova za CBC)
+        byte[] iv = new byte[16] { 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0, 
+                                   0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF };
+        
         Console.WriteLine($"Original ({original.Length} bytes): {originalText}");
+        Console.WriteLine($"Key: {BitConverter.ToString(key)}");
+        Console.WriteLine($"IV:  {BitConverter.ToString(iv)}");
         
-        // Test 1: XXTEA direktno (bez CBC) - mora biti tačno 8 bajtova
-        byte[] testBlock = new byte[8];
-        Array.Copy(original, testBlock, Math.Min(8, original.Length));
-        
-        Console.WriteLine($"\nTest blok (8 bytes): {Encoding.UTF8.GetString(testBlock)}");
-        Console.WriteLine($"Hex: {BitConverter.ToString(testBlock)}");
-        
-        byte[] encrypted = XXTEACipher.Encrypt(testBlock, key);
-        Console.WriteLine($"\nEnkriptovano: {BitConverter.ToString(encrypted)}");
-        
-        byte[] decrypted = XXTEACipher.Decrypt(encrypted, key);
-        Console.WriteLine($"Dekriptovano: {BitConverter.ToString(decrypted)}");
-        Console.WriteLine($"Tekst: {Encoding.UTF8.GetString(decrypted)}");
-        
-        // Provera
-        bool match = true;
-        for (int i = 0; i < 8; i++)
+        try
         {
-            if (testBlock[i] != decrypted[i])
+            // Test CBC enkriptovanje
+            var xxtea = new XXTEA(key);
+            var cbc = new CBC(xxtea, iv);
+            
+            byte[] encrypted = cbc.Encrypt(original);
+            Console.WriteLine($"\nEnkriptovano CBC ({encrypted.Length} bytes):");
+            Console.WriteLine($"Hex (prvih 32 bytes): {BitConverter.ToString(encrypted.Take(32).ToArray())}...");
+            
+            // Test CBC dekriptovanje
+            byte[] decrypted = cbc.Decrypt(encrypted);
+            string decryptedText = Encoding.UTF8.GetString(decrypted);
+            Console.WriteLine($"\nDekriptovano ({decrypted.Length} bytes): {decryptedText}");
+            
+            // Provera
+            bool match = original.SequenceEqual(decrypted);
+            if (match)
             {
-                match = false;
-                Console.WriteLine($"RAZLIKA na poziciji {i}: {testBlock[i]} != {decrypted[i]}");
+                Console.WriteLine("\n✅ XXTEA + CBC RADI ISPRAVNO!");
+                Console.WriteLine($"✅ Padding i IV rade savršeno!");
+            }
+            else
+            {
+                Console.WriteLine("\n❌ XXTEA + CBC NE RADI!");
+                Console.WriteLine($"❌ Original length: {original.Length}, Decrypted length: {decrypted.Length}");
             }
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"\n❌ GREŠKA: {ex.Message}");
+        }
         
-        if (match)
-            Console.WriteLine("\n✅ XXTEA RADI ISPRAVNO!");
-        else
-            Console.WriteLine("\n❌ XXTEA NE RADI!");
-        
-        Console.WriteLine("==================\n");
+        Console.WriteLine("===========================================\n");
     }
 }

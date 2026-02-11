@@ -69,7 +69,8 @@ namespace Network
                     onMessage?.Invoke($"📦 Primljeno {totalBytes} bajtova");
                     Console.WriteLine($"   Primljeno {totalBytes} bajtova");
 
-                    string receivedHash = Hashing.TigerHash.ComputeHash(encryptedData);
+                    var tigerHash = new Hashing.TigerHash();
+                    string receivedHash = tigerHash.ComputeHash(encryptedData);
                     if (receivedHash != metadata.FileHash)
                     {
                         onMessage?.Invoke("❌ HEŠ MISMATCH!");

@@ -1,102 +1,174 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
 
-namespace Ciphers
+namespace CryptoHelperNamespace.Ciphers
 {
-    public class CBCMode
+    public class CBC
     {
-        public static byte[] Encrypt(byte[] plaintext, byte[] key, byte[] iv)
+        private readonly XXTEA algorithm;
+        private readonly byte[] iv;
+        private readonly int blockSize = 16;
+
+        public CBC(XXTEA algorithm, byte[] iv = null)
         {
-            if (iv.Length != 8)
-                throw new ArgumentException("IV mora biti 8 bajtova");
-
-            // Dodaj PKCS7 padding
-            int paddingLength = 8 - (plaintext.Length % 8);
-            byte[] paddedPlaintext = new byte[plaintext.Length + paddingLength];
-            Array.Copy(plaintext, paddedPlaintext, plaintext.Length);
-
-            // Popuni padding bajtove sa vrednošću padding dužine
-            for (int i = plaintext.Length; i < paddedPlaintext.Length; i++)
-                paddedPlaintext[i] = (byte)paddingLength;
-
-            byte[] ciphertext = new byte[paddedPlaintext.Length];
-            byte[] previousBlock = (byte[])iv.Clone();
-
-            // Proces: svaki blok se XOR-a sa prethodnim šifrovnim blokom
-            for (int i = 0; i < paddedPlaintext.Length; i += 8)
+            this.algorithm = algorithm ?? throw new ArgumentNullException(nameof(algorithm));
+            if (iv == null)
             {
-                byte[] block = new byte[8];
-                Array.Copy(paddedPlaintext, i, block, 0, 8);
-
-                // XOR sa prethodnim blokom
-                for (int j = 0; j < 8; j++)
-                    block[j] ^= previousBlock[j];
-
-                // Enkriptuj blok (uvek pun 8-bajtni blok)
-                byte[] encrypted = XXTEACipher.Encrypt(block, key);
-                Array.Copy(encrypted, 0, ciphertext, i, 8);
-
-                previousBlock = encrypted;
+                this.iv = GenerateRandomIV(blockSize);
             }
-
-            return ciphertext;
+            else
+            {
+                if (iv.Length < blockSize)
+                    throw new Exception($"IV mora biti {blockSize} bajtova");
+                this.iv = iv;
+            }
         }
 
-        public static byte[] Decrypt(byte[] ciphertext, byte[] key, byte[] iv)
+        public string Name => $"CBC(XXTEA)";
+
+        public byte[] Encrypt(byte[] data)
         {
-            if (iv.Length != 8)
-                throw new ArgumentException("IV mora biti 8 bajtova");
+            if (data == null || data.Length == 0)
+                return Array.Empty<byte>();
 
-            if (ciphertext.Length % 8 != 0)
-                throw new ArgumentException("Ciphertext mora biti deljiv sa 8 bajtova");
+            byte[] paddedData = AddPadding(data);
+            List<byte[]> blocks = SplitIntoBlocks(paddedData, blockSize);
+            List<byte[]> encryptedBlocks = EncryptBlocks(blocks);
+            byte[] encryptedData = FlattenBlocks(encryptedBlocks);
 
-            byte[] plaintext = new byte[ciphertext.Length];
-            byte[] previousBlock = (byte[])iv.Clone();
+            byte[] result = new byte[iv.Length + encryptedData.Length];
+            Array.Copy(iv, 0, result, 0, iv.Length);
+            Array.Copy(encryptedData, 0, result, iv.Length, encryptedData.Length);
+            return result;
+        }
 
-            for (int i = 0; i < ciphertext.Length; i += 8)
+        public byte[] Decrypt(byte[] data)
+        {
+            if (data == null || data.Length == 0)
+                return Array.Empty<byte>();
+
+            if (data.Length < blockSize)
+                throw new Exception("Šifrovani podaci su prekratki");
+
+            byte[] iv = new byte[blockSize];
+            Array.Copy(data, 0, iv, 0, blockSize);
+
+            int encryptedBlocksLength = data.Length - blockSize;
+            if (encryptedBlocksLength % blockSize != 0)
+                throw new Exception("Šifrovani podaci nisu povezani po bloku");
+
+            byte[] blocksData = new byte[encryptedBlocksLength];
+            Array.Copy(data, blockSize, blocksData, 0, encryptedBlocksLength);
+
+            List<byte[]> blocks = SplitIntoBlocks(blocksData, blockSize);
+            List<byte[]> decryptedBlocks = DecryptBlocks(blocks, iv);
+            byte[] decryptedData = FlattenBlocks(decryptedBlocks);
+            return RemovePadding(decryptedData);
+        }
+
+        public byte[] GetIV() => iv;
+
+        private byte[] GenerateRandomIV(int size)
+        {
+            byte[] iv = new byte[size];
+            using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
             {
-                byte[] block = new byte[8];
-                Array.Copy(ciphertext, i, block, 0, 8);
-
-                // Sačuvaj enkriptovan blok PRE dekriptovanja
-                byte[] encryptedCopy = (byte[])block.Clone();
-
-                // Dekriptuj blok (uvek pun 8-bajtni blok)
-                byte[] decrypted = XXTEACipher.Decrypt(block, key);
-
-                // XOR sa prethodnim šifrovnim blokom
-                for (int j = 0; j < 8; j++)
-                    plaintext[i + j] = (byte)(decrypted[j] ^ previousBlock[j]);
-
-                previousBlock = encryptedCopy;
+                rng.GetBytes(iv);
             }
+            return iv;
+        }
 
-            // Ukloni PKCS7 padding
-            int paddingLength = plaintext[plaintext.Length - 1];
+        private byte[] AddPadding(byte[] data)
+        {
+            int paddingLength = blockSize - (data.Length % blockSize);
+            if (paddingLength == blockSize) paddingLength = 0;
+            byte[] padded = new byte[data.Length + paddingLength];
+            Array.Copy(data, padded, data.Length);
+            for (int i = data.Length; i < padded.Length; i++)
+                padded[i] = (byte)paddingLength;
+            return padded;
+        }
 
-            // Validacija padding-a
-            if (paddingLength > 0 && paddingLength <= 8)
+        private byte[] RemovePadding(byte[] data)
+        {
+            if (data.Length == 0) return data;
+            int paddingLength = data[data.Length - 1];
+            if (paddingLength <= 0 || paddingLength > blockSize || paddingLength > data.Length)
+                throw new Exception("Neispravan padding");
+            for (int i = data.Length - paddingLength; i < data.Length; i++)
             {
-                // Proveri da li su svi padding bajtovi validni
-                bool validPadding = true;
-                for (int i = plaintext.Length - paddingLength; i < plaintext.Length; i++)
-                {
-                    if (plaintext[i] != paddingLength)
-                    {
-                        validPadding = false;
-                        break;
-                    }
-                }
-
-                if (validPadding)
-                {
-                    byte[] unpaddedPlaintext = new byte[plaintext.Length - paddingLength];
-                    Array.Copy(plaintext, unpaddedPlaintext, unpaddedPlaintext.Length);
-                    return unpaddedPlaintext;
-                }
+                if (data[i] != paddingLength)
+                    throw new Exception("Neispravan padding");
             }
+            byte[] result = new byte[data.Length - paddingLength];
+            Array.Copy(data, 0, result, 0, result.Length);
+            return result;
+        }
 
-            // Ako padding nije validan, vrati originalni plaintext
-            return plaintext;
+        private List<byte[]> SplitIntoBlocks(byte[] data, int size)
+        {
+            List<byte[]> blocks = new List<byte[]>();
+            for (int i = 0; i < data.Length; i += size)
+            {
+                byte[] block = new byte[size];
+                Array.Copy(data, i, block, 0, Math.Min(size, data.Length - i));
+                blocks.Add(block);
+            }
+            return blocks;
+        }
+
+        private byte[] XorBytes(byte[] a, byte[] b)
+        {
+            if (a.Length != b.Length) throw new Exception("Nizovi moraju biti iste dužine");
+            byte[] result = new byte[a.Length];
+            for (int i = 0; i < a.Length; i++)
+            {
+                result[i] = (byte)(a[i] ^ b[i]);
+            }
+            return result;
+        }
+
+        private List<byte[]> EncryptBlocks(List<byte[]> blocks)
+        {
+            List<byte[]> encryptedBlocks = new List<byte[]>();
+            byte[] prevBlock = iv;
+            foreach (byte[] block in blocks)
+            {
+                byte[] xored = XorBytes(block, prevBlock);
+                byte[] encryptedBlock = algorithm.Encrypt(xored);
+                encryptedBlocks.Add(encryptedBlock);
+                prevBlock = encryptedBlock;
+            }
+            return encryptedBlocks;
+        }
+
+        private List<byte[]> DecryptBlocks(List<byte[]> blocks, byte[] ivFromFile)
+        {
+            List<byte[]> decryptedBlocks = new List<byte[]>();
+            byte[] prevBlock = ivFromFile;
+            foreach (byte[] block in blocks)
+            {
+                byte[] decryptedBlock = algorithm.Decrypt(block);
+                byte[] xored = XorBytes(decryptedBlock, prevBlock);
+                decryptedBlocks.Add(xored);
+                prevBlock = block;
+            }
+            return decryptedBlocks;
+        }
+
+        private byte[] FlattenBlocks(List<byte[]> blocks)
+        {
+            int totalLength = blocks.Sum(block => block.Length);
+            byte[] result = new byte[totalLength];
+            int offset = 0;
+            foreach (byte[] block in blocks)
+            {
+                Array.Copy(block, 0, result, offset, block.Length);
+                offset += block.Length;
+            }
+            return result;
         }
     }
 }
