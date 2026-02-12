@@ -206,3 +206,4 @@
 [2026-02-11 16:33:13] Datoteka poslana: /var/folders/yw/hf78lwlx06n39pmlpr30_n780000gn/T/Sasa Misic rils 6 - HD 1080p.mov.enc
 [2026-02-11 16:33:17] Zapisao datoteku: received/Sasa Misic rils 6 - HD 1080p.mov
 [2026-02-11 16:33:17] TCP Server zatvoren
+[2026-02-11 21:24:47] TCP Send greška: Connection refused [::ffff:127.0.0.1]:5555

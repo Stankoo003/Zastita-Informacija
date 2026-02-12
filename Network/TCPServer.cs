@@ -14,7 +14,7 @@ namespace Network
     {
         public static async Task<string?> StartServerAsync(int port = 5000, Action<string>? onMessage = null)
         {
-            // Kreiraj received folder ako ne postoji
+            
             string receivedDir = "received";
             if (!Directory.Exists(receivedDir))
             {
@@ -26,7 +26,7 @@ namespace Network
             Console.WriteLine($"🟢 Server sluša na portu {port}...");
             Console.WriteLine($"💡 Dostupan na 127.0.0.1:{port}");
 
-            // ← IZMENA: Sluša na svim interfejsima
+            
             TcpListener listener = new TcpListener(IPAddress.Any, port);
             listener.Start();
 
@@ -38,15 +38,15 @@ namespace Network
 
                 NetworkStream stream = client.GetStream();
 
-                // Primi metadata
+                
                 byte[] buffer = new byte[8192];
                 int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
                 string metadataJson = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                 
-                // ← IZMENA: Koristi KOMPATIBILNU metadata (njena struktura)
+                
                 var metadata = MetadataHandler.ReadCompatibleMetadata(metadataJson);
 
-                // Pošalji metadata info
+                
                 onMessage?.Invoke("📋 === METADATA ===");
                 onMessage?.Invoke($"   Fajl: {metadata.FileName}");
                 onMessage?.Invoke($"   Veličina: {metadata.SizeBytes} bajtova");
@@ -73,7 +73,7 @@ namespace Network
                     onMessage?.Invoke($"📦 Primljeno {totalBytes} bajtova");
                     Console.WriteLine($"   Primljeno {totalBytes} bajtova");
 
-                    // Verifikuj heš
+                    
                     var tigerHash = new Hashing.TigerHash();
                     string receivedHash = tigerHash.ComputeHash(encryptedData);
                     
@@ -92,10 +92,10 @@ namespace Network
 
                     try
                     {
-                        // ← IZMENA: Koristi metadata.Algorithm umesto EncryptionAlgorithm
+                        
                         byte[] decryptedData = CryptoHelper.DecryptData(encryptedData, metadata.Algorithm);
 
-                        // Sačuvaj u received folder
+                        
                         string receivedPath = Path.Combine(receivedDir, metadata.FileName);
                         FileHandler.WriteFile(receivedPath, decryptedData);
 

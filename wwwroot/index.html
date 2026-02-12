@@ -115,6 +115,45 @@
             <div class="card mt-4">
 
 
+                          <div class="card mt-4">
+              <div class="card-body">
+                <h5 class="card-title">🔑 Upravljanje ključem (za razmenu)</h5>
+
+                <div class="d-grid gap-2 mb-3">
+                  <button class="btn btn-primary" id="generateKeyBtn">
+                    🎲 Generiši novi ključ
+                  </button>
+                  <button class="btn btn-success" id="downloadKeyBtn">
+                    💾 Preuzmi ključ (shared.key)
+                  </button>
+                   <div class="mt-4">
+      <label for="debugCryptInput" class="form-label">🔍 Debug .crypt fajl:</label>
+      <input type="file" class="form-control" id="debugCryptInput" accept=".crypt" />
+      <button class="btn btn-info mt-2 w-100" id="debugCryptBtn">
+        🔬 Analiziraj .crypt fajl
+      </button>
+                </div>
+
+                <div class="mb-3">
+                  <label for="keyFileInput" class="form-label">Učitaj ključ od koleginice:</label>
+                  <input type="file" class="form-control" id="keyFileInput" accept=".key" />
+                  <button class="btn btn-warning mt-2 w-100" id="uploadKeyBtn">
+                    📤 Učitaj ključ
+                  </button>
+                </div>
+
+                  <div class="alert alert-info" role="alert">
+                  <strong>Trenutni ključ (XXTEA):</strong><br>
+                  <small id="currentKeyDisplay" style="font-family: monospace; word-break: break-all;">
+                    Učitavam...
+                  </small>
+                </div>
+
+              </div>
+            </div>
+
+            <div class="card mt-4">
+
             <div class="card mt-4">
               <div class="card-body">
                 <h5 class="card-title">Log:</h5>

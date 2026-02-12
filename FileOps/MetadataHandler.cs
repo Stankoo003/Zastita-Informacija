@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace FileOps
 {
-    // Tvoja klasa (za kompatibilnost unutar projekta)
+    
     public class Metadata
     {
         public string Filename { get; set; } = "";
@@ -15,7 +15,7 @@ namespace FileOps
         public string FileHash { get; set; } = "";
     }
 
-    // NJENA klasa (za kompatibilnost sa koleginicom)
+    
     public class FileMetaData
     {
         public string FileName { get; set; } = "";
@@ -33,7 +33,7 @@ namespace FileOps
 
     public static class MetadataHandler
     {
-        // TVOJA verzija (za interni kod)
+        
         public static string CreateMetadata(string originalFilename, byte[] fileData, 
             string encryptAlgorithm, string hashAlgorithm, string fileHash)
         {
@@ -55,7 +55,7 @@ namespace FileOps
             return JsonSerializer.Deserialize<Metadata>(json)!;
         }
 
-        // NJENA verzija (za razmenu sa koleginicom)
+        
         public static string CreateCompatibleMetadata(string originalFilename, byte[] fileData, 
             string algorithm, string hashAlgorithm, string hashValue)
         {
@@ -72,7 +72,7 @@ namespace FileOps
             return metadata.ToJson();
         }
 
-        // Parsiranje NJENOG JSON-a
+        
         public static FileMetaData ReadCompatibleMetadata(string json)
         {
             return JsonSerializer.Deserialize<FileMetaData>(json)!;

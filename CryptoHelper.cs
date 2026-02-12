@@ -12,11 +12,10 @@ namespace CryptoHelperNamespace
         {
             Console.WriteLine($"\n[ENCRYPT] Algoritam: {algorithm}");
             Console.WriteLine($"[ENCRYPT] Key: {BitConverter.ToString(EncryptionKey).Substring(0, 47)}...");
-            Console.WriteLine($"[ENCRYPT] IV:  {BitConverter.ToString(EncryptionIV)}");
 
             if (algorithm == "Railfence")
             {
-                // Railfence radi na tekstu
+                
                 string text = System.Text.Encoding.UTF8.GetString(data);
                 var railfence = new RailFenceCipher(3);
                 byte[] encryptedBytes = railfence.Encrypt(System.Text.Encoding.UTF8.GetBytes(text));
@@ -25,7 +24,7 @@ namespace CryptoHelperNamespace
             else if (algorithm == "XXTEA-CBC" || algorithm == "XXTEA+CBC")
             {
                 var xxtea = new XXTEA(EncryptionKey);
-                var cbc = new CBC(xxtea, EncryptionIV);
+                var cbc = new CBC(xxtea, null);
                 return cbc.Encrypt(data);
             }
             else
@@ -38,11 +37,10 @@ namespace CryptoHelperNamespace
         {
             Console.WriteLine($"\n[DECRYPT] Algoritam: {algorithm}");
             Console.WriteLine($"[DECRYPT] Key: {BitConverter.ToString(EncryptionKey).Substring(0, 47)}...");
-            Console.WriteLine($"[DECRYPT] IV:  {BitConverter.ToString(EncryptionIV)}");
 
             if (algorithm == "Railfence")
             {
-                // Railfence radi na tekstu
+                
                 var railfence = new RailFenceCipher(3);
                 byte[] decryptedBytes = railfence.Decrypt(encryptedData);
                 return decryptedBytes;
@@ -50,8 +48,8 @@ namespace CryptoHelperNamespace
             else if (algorithm == "XXTEA-CBC" || algorithm == "XXTEA+CBC")
             {
                 var xxtea = new XXTEA(EncryptionKey);
-                var cbc = new CBC(xxtea, EncryptionIV);
-                return cbc.Decrypt(encryptedData);
+                var cbc = new CBC(xxtea);  
+                return cbc.Encrypt(encryptedData);
             }
             else
             {
@@ -59,22 +57,22 @@ namespace CryptoHelperNamespace
             }
         }
 
-        // Bonus: Automatsko čuvanje fajlova
+        
         public static void SaveEncryptedFile(string filename, byte[] data, string algorithm)
         {
             string encryptedDir = "encrypted";
             Directory.CreateDirectory(encryptedDir);
-            
+
             string encryptedPath = Path.Combine(encryptedDir, Path.GetFileName(filename) + ".enc");
             string metadataPath = encryptedPath + ".meta";
-            
+
             File.WriteAllBytes(encryptedPath, data);
-            
-            var tigerHash = new Hashing.TigerHash(); 
+
+            var tigerHash = new Hashing.TigerHash();
             string hash = tigerHash.ComputeHash(data);
             string metadata = FileOps.MetadataHandler.CreateMetadata(filename, data, algorithm, "Tiger", hash);
             File.WriteAllText(metadataPath, metadata);
-            
+
             Console.WriteLine($"💾 Sačuvano: {encryptedPath}");
         }
 
@@ -82,10 +80,10 @@ namespace CryptoHelperNamespace
         {
             string decryptedDir = "decrypted";
             Directory.CreateDirectory(decryptedDir);
-            
+
             string originalName = Path.GetFileNameWithoutExtension(encryptedFilename);
             string decryptedPath = Path.Combine(decryptedDir, originalName);
-            
+
             File.WriteAllBytes(decryptedPath, data);
             Console.WriteLine($"💾 Dekriptovano: {decryptedPath}");
         }

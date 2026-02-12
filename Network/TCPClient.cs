@@ -30,16 +30,16 @@ namespace Network
 
                 Logger.Log($"Povezivanje na {ipAddress}:{port}...");
 
-                // Pošalji metadata
+                
                 string metadataJson = File.ReadAllText(metadataPath);
                 byte[] metadataBytes = Encoding.UTF8.GetBytes(metadataJson);
                 stream.Write(metadataBytes, 0, metadataBytes.Length);
                 Console.WriteLine("📤 Metadata poslat");
 
-                // VAŽNO: Kratak delay da server obradi metadata
+                
                 System.Threading.Thread.Sleep(100);
 
-                // Pošalji enkriptovanu datoteku
+                
                 byte[] fileData = File.ReadAllBytes(encryptedFilepath);
                 stream.Write(fileData, 0, fileData.Length);
                 Console.WriteLine($"📤 Poslat {fileData.Length} bajtova");

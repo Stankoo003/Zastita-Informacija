@@ -307,4 +307,114 @@ document.addEventListener("DOMContentLoaded", function () {
         addLog(`❌ Greška: ${error.message}`);
       }
     });
+
+      // Generiši ključ
+  document.getElementById("generateKeyBtn").addEventListener("click", async function () {
+    try {
+      const response = await fetch("/api/generate-key", { method: "POST" });
+      const result = await response.json();
+
+      if (result.success) {
+        addLog("🔑 " + result.message);
+        updateCurrentKey();
+      } else {
+        addLog("❌ " + result.error);
+      }
+    } catch (error) {
+      addLog("❌ Greška: " + error.message);
+    }
+  });
+
+  // Preuzmi ključ
+  document.getElementById("downloadKeyBtn").addEventListener("click", function () {
+    window.location.href = "/api/download-key";
+    addLog("💾 Preuzimam shared.key...");
+  });
+
+  // Učitaj ključ
+  document.getElementById("uploadKeyBtn").addEventListener("click", async function () {
+    const fileInput = document.getElementById("keyFileInput");
+    
+    if (!fileInput.files || fileInput.files.length === 0) {
+      addLog("❌ Nije izabran fajl!");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("keyFile", fileInput.files[0]);
+
+    try {
+      const response = await fetch("/api/upload-key", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        addLog("✅ " + result.message);
+        updateCurrentKey();
+      } else {
+        addLog("❌ " + result.error);
+      }
+    } catch (error) {
+      addLog("❌ Greška: " + error.message);
+    }
+  });
+
+
+document.getElementById("debugCryptBtn").addEventListener("click", async function () {
+
+const fileInput = document.getElementById("debugCryptInput"); 
+
+  
+  if (!fileInput.files || fileInput.files.length === 0) {
+    addLog("❌ Nije izabran fajl!");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("file", fileInput.files[0]);
+
+  try {
+    const response = await fetch("/api/debug-crypt", {
+      method: "POST",
+      body: formData,
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      addLog("🔬 === CRYPT FILE DEBUG ===");
+      addLog(`📦 Veličina: ${result.size} bajtova`);
+      addLog(`🔑 IV: ${result.ivHex}`);
+      addLog(`📊 Ostatak: ${result.remainingSize} bajtova`);
+      addLog(`✔️ Deljiv sa 16: ${result.isDivisibleBy16} (remainder: ${result.remainder})`);
+      addLog(`📋 Bajtovi 16-79 (hex): ${result.next64Hex.substring(0, 64)}...`);
+      addLog(`📝 Bajtovi 16-79 (text): ${result.next64Text.substring(0, 32)}...`);
+      addLog(`🔐 Hash: ${result.hash}...`);
+      addLog("==========================");
+    } else {
+      addLog("❌ " + result.error);
+    }
+  } catch (error) {
+    addLog("❌ Greška: " + error.message);
+  }
+});
+
+
+
+  async function updateCurrentKey() {
+    try {
+      const response = await fetch("/api/current-key");
+      const data = await response.json();
+      document.getElementById("currentKeyDisplay").textContent = data.keyHex;
+    } catch (error) {
+      console.error("Greška pri učitavanju ključa:", error);
+    }
+  }
+
+
+  // Učitaj ključ pri pokretanju
+  updateCurrentKey();
 });

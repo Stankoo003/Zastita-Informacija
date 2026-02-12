@@ -1,15 +1,16 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net.Sockets;
+using CryptoHelperNamespace;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
 {
-    options.MultipartBodyLengthLimit = 2147483648; // 2 GB
+    options.MultipartBodyLengthLimit = 2147483648; 
 });
 
-// Pronađi slobodan port
+
 int port = 5000;
 while (port < 5010)
 {
@@ -30,32 +31,49 @@ if (port >= 5010)
 
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
-    serverOptions.Limits.MaxRequestBodySize = 2147483648; // 2 GB
+    serverOptions.Limits.MaxRequestBodySize = 2147483648; 
     serverOptions.ListenLocalhost(port);
 });
 
 var app = builder.Build();
 
-// Služi statičke fajlove
+
 app.UseStaticFiles();
 
-// Redirect na index.html
+
 app.MapGet("/", () => Results.Redirect("/index.html"));
 
-// API test
+
 app.MapGet("/api/test", () => new { status = "radi", timestamp = DateTime.Now });
 
-// Postavi globalni ključ i IV (16 bajtova za CBC!)
-byte[] key = [0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF, 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32, 0x10];
-byte[] iv = [0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0, 0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF]; // 16 bajtova!
+
+
+
+
+
+byte[] key;
+const string KEY_FILE = "shared.key";
+
+if (File.Exists(KEY_FILE))
+{
+    key = File.ReadAllBytes(KEY_FILE);
+    Console.WriteLine($"✅ Učitan postojeći ključ iz {KEY_FILE}");
+}
+else
+{
+    key = CryptoHelperNamespace.KeyManager.GenerateXXTEAKey();
+    CryptoHelperNamespace.KeyManager.SaveKey(key, KEY_FILE);
+    Console.WriteLine($"🔑 Generisan novi ključ i sačuvan u {KEY_FILE}");
+}
 
 CryptoHelperNamespace.CryptoHelper.EncryptionKey = key;
-CryptoHelperNamespace.CryptoHelper.EncryptionIV = iv;
+
 
 Console.WriteLine("\n=== KRIPTOGRAFSKI PARAMETRI ===");
 Console.WriteLine($"Key: {BitConverter.ToString(key)}");
-Console.WriteLine($"IV:  {BitConverter.ToString(iv)}");
+Console.WriteLine($"IV:  Generiše se automatski pri svakom enkriptovanju (CBC)");
 Console.WriteLine("================================\n");
+
 
 TestXXTEA.TestEncryptDecrypt();
 
@@ -63,7 +81,7 @@ var serverStatus = new System.Collections.Concurrent.ConcurrentBag<string>();
 var fswStatus = new System.Collections.Concurrent.ConcurrentBag<string>();
 FileWatching.FileSystemWatcherService? fswService = null;
 
-// Server status
+
 app.MapGet("/api/server-status", () =>
 {
     var messages = serverStatus.ToList();
@@ -73,7 +91,7 @@ app.MapGet("/api/server-status", () =>
     return Results.Ok(new { messages });
 });
 
-// FSW status
+
 app.MapGet("/api/fsw-status", () =>
 {
     var messages = fswStatus.ToList();
@@ -81,7 +99,7 @@ app.MapGet("/api/fsw-status", () =>
     return Results.Ok(new { messages });
 });
 
-// Enkriptovanje
+
 app.MapPost("/api/encrypt", async (HttpRequest request) =>
 {
     var form = await request.ReadFormAsync();
@@ -99,7 +117,7 @@ app.MapPost("/api/encrypt", async (HttpRequest request) =>
     var tigerHash = new Hashing.TigerHash();
     string hash = tigerHash.ComputeHash(encrypted);
 
-    // ← DODAJ: Automatski sačuvaj u root
+    
     CryptoHelperNamespace.CryptoHelper.SaveEncryptedFile(file.FileName, encrypted, algorithm);
 
     return Results.Ok(new
@@ -112,8 +130,86 @@ app.MapPost("/api/encrypt", async (HttpRequest request) =>
     });
 });
 
+app.MapPost("/api/debug-crypt", async (HttpRequest request) =>
+{
+    try
+    {
+        var form = await request.ReadFormAsync();
+        var file = form.Files["file"];
 
-// Dekriptovanje
+        if (file == null)
+            return Results.BadRequest(new { error = "Fajl nije poslat" });
+
+        using var ms = new MemoryStream();
+        await file.CopyToAsync(ms);
+        byte[] fileData = ms.ToArray();
+
+        Console.WriteLine($"\n🔍 === DEBUG .crypt FAJL ===");
+        Console.WriteLine($"Naziv: {file.FileName}");
+        Console.WriteLine($"Ukupna veličina: {fileData.Length} bajtova");
+
+        
+        byte[] iv = new byte[16];
+        Array.Copy(fileData, 0, iv, 0, 16);
+        Console.WriteLine($"\nIV (0-15): {BitConverter.ToString(iv)}");
+
+        
+        int remainingSize = fileData.Length - 16;
+        Console.WriteLine($"Ostatak: {remainingSize} bajtova");
+        Console.WriteLine($"Deljiv sa 16: {remainingSize % 16 == 0} ({remainingSize % 16} remainder)");
+
+        
+        byte[] next64 = new byte[Math.Min(64, remainingSize)];
+        Array.Copy(fileData, 16, next64, 0, next64.Length);
+        Console.WriteLine($"\nBajtovi 16-79 (hex):\n{BitConverter.ToString(next64)}");
+
+        
+        string textAttempt = System.Text.Encoding.UTF8.GetString(next64);
+        Console.WriteLine($"\nBajtovi 16-79 (text): {textAttempt.Replace("\n", "\\n").Replace("\r", "\\r")}");
+
+        
+        byte[] lastBlock = new byte[16];
+        if (fileData.Length >= 16)
+        {
+            int lastBlockStart = ((fileData.Length - 16) / 16) * 16;
+            if (lastBlockStart >= 16)
+            {
+                Array.Copy(fileData, lastBlockStart, lastBlock, 0, 16);
+                Console.WriteLine($"\nPoslednji 16-byte blok ({lastBlockStart}-{lastBlockStart + 15}):");
+                Console.WriteLine($"Hex: {BitConverter.ToString(lastBlock)}");
+                Console.WriteLine($"Decimal: {string.Join(", ", lastBlock)}");
+            }
+        }
+
+        
+        var tigerHash = new Hashing.TigerHash();
+        string hash = tigerHash.ComputeHash(fileData);
+        Console.WriteLine($"\nTiger hash: {hash.Substring(0, 32)}...");
+
+        Console.WriteLine($"=========================\n");
+
+        return Results.Ok(new
+        {
+            success = true,
+            size = fileData.Length,
+            ivHex = BitConverter.ToString(iv).Replace("-", ""),
+            remainingSize = remainingSize,
+            isDivisibleBy16 = remainingSize % 16 == 0,
+            remainder = remainingSize % 16,
+            next64Hex = BitConverter.ToString(next64).Replace("-", ""),
+            next64Text = textAttempt,
+            hash = hash.Substring(0, 32)
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.Json(new { success = false, error = ex.Message }, statusCode: 500);
+    }
+});
+
+
+
+
 app.MapPost("/api/decrypt", async (HttpRequest request) =>
 {
     var form = await request.ReadFormAsync();
@@ -125,23 +221,62 @@ app.MapPost("/api/decrypt", async (HttpRequest request) =>
 
     using var ms = new MemoryStream();
     await file.CopyToAsync(ms);
-    byte[] encryptedData = ms.ToArray();
+    byte[] fileData = ms.ToArray();
 
-    byte[] decrypted = CryptoHelperNamespace.CryptoHelper.DecryptData(encryptedData, algorithm);
+    Console.WriteLine($"\n🔍 DEBUG DECRYPT:");
+    Console.WriteLine($"   Fajl: {file.FileName}");
+    Console.WriteLine($"   Veličina: {fileData.Length} bajtova");
+    Console.WriteLine($"   Algoritam: {algorithm}");
 
-    // ← ISPRAVKA: Proslijedi IME enkriptovanog fajla (sa .enc)
-    CryptoHelperNamespace.CryptoHelper.SaveDecryptedFile(file.FileName, decrypted);
-
-    return Results.Ok(new
+    try
     {
-        success = true,
-        originalName = Path.GetFileNameWithoutExtension(file.FileName),
-        size = decrypted.Length,
-        saved = $"decrypted/{Path.GetFileNameWithoutExtension(file.FileName)}"
-    });
+        
+        var (iv, encryptedData, metadata) = FileOps.FileFormatParser.ParseCryptFile(fileData);
+
+        Console.WriteLine($"   IV: {BitConverter.ToString(iv)}");
+        Console.WriteLine($"   Encrypted size: {encryptedData.Length}");
+        
+        if (metadata != null)
+        {
+            Console.WriteLine($"   Metadata pronađena: {metadata.FileName}, {metadata.Algorithm}");
+            algorithm = metadata.Algorithm; 
+        }
+
+        
+        var xxtea = new CryptoHelperNamespace.Ciphers.XXTEA(CryptoHelperNamespace.CryptoHelper.EncryptionKey);
+        var cbc = new CryptoHelperNamespace.Ciphers.CBC(xxtea, iv); 
+        
+        
+        byte[] fullData = new byte[16 + encryptedData.Length];
+        Array.Copy(iv, 0, fullData, 0, 16);
+        Array.Copy(encryptedData, 0, fullData, 16, encryptedData.Length);
+        
+        byte[] decrypted = cbc.Decrypt(fullData);
+
+        Console.WriteLine($"   ✅ Dekriptovano: {decrypted.Length} bajtova");
+
+        string originalName = metadata?.FileName ?? Path.GetFileNameWithoutExtension(file.FileName);
+        CryptoHelperNamespace.CryptoHelper.SaveDecryptedFile(originalName, decrypted);
+
+        return Results.Ok(new
+        {
+            success = true,
+            originalName = originalName,
+            size = decrypted.Length,
+            saved = $"decrypted/{originalName}"
+        });
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"   ❌ GREŠKA: {ex.Message}");
+        Console.WriteLine($"   Stack: {ex.StackTrace}");
+        return Results.Json(new { success = false, error = ex.Message }, statusCode: 500);
+    }
 });
 
-// Slanje fajla preko TCP
+
+
+
 app.MapPost("/api/send", async (HttpRequest request) =>
 {
     try
@@ -187,7 +322,7 @@ app.MapPost("/api/send", async (HttpRequest request) =>
     }
 });
 
-// Pokretanje TCP servera
+
 app.MapPost("/api/start-server", async (HttpRequest request) =>
 {
     try
@@ -212,7 +347,7 @@ app.MapPost("/api/start-server", async (HttpRequest request) =>
     }
 });
 
-// Hashovanje
+
 app.MapPost("/api/hash", async (HttpRequest request) =>
 {
     try
@@ -244,7 +379,7 @@ app.MapPost("/api/hash", async (HttpRequest request) =>
     }
 });
 
-// FSW
+
 app.MapPost("/api/start-fsw", async (HttpRequest request) =>
 {
     try
@@ -285,9 +420,94 @@ app.MapPost("/api/stop-fsw", () =>
     }
 });
 
+
+app.MapPost("/api/generate-key", () =>
+{
+    try
+    {
+        byte[] key = CryptoHelperNamespace.KeyManager.GenerateXXTEAKey();
+        CryptoHelperNamespace.KeyManager.SaveKey(key);
+        CryptoHelperNamespace.KeyManager.ApplyKey(key);
+
+        return Results.Ok(new
+        {
+            success = true,
+            message = "Ključ generisan i sačuvan u shared.key!",
+            keyHex = BitConverter.ToString(key).Replace("-", "")
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.Json(new { success = false, error = ex.Message }, statusCode: 500);
+    }
+});
+
+
+
+app.MapGet("/api/download-key", () =>
+{
+    try
+    {
+        if (!File.Exists("shared.key"))
+            return Results.NotFound(new { error = "Ključ nije generisan!" });
+
+        byte[] keyData = File.ReadAllBytes("shared.key");
+        return Results.File(keyData, "application/octet-stream", "shared.key");
+    }
+    catch (Exception ex)
+    {
+        return Results.Json(new { success = false, error = ex.Message }, statusCode: 500);
+    }
+});
+
+app.MapPost("/api/upload-key", async (HttpRequest request) =>
+{
+    try
+    {
+        var form = await request.ReadFormAsync();
+        var keyFile = form.Files["keyFile"];
+
+        if (keyFile == null)
+            return Results.BadRequest(new { error = "Ključ fajl nije poslat!" });
+
+        using var ms = new MemoryStream();
+        await keyFile.CopyToAsync(ms);
+        byte[] key = ms.ToArray();
+
+        if (key.Length != 16)
+            return Results.BadRequest(new { error = $"Ključ mora biti 16 bajtova! Učitano: {key.Length}" });
+
+        CryptoHelperNamespace.KeyManager.SaveKey(key);
+        CryptoHelperNamespace.KeyManager.ApplyKey(key);
+
+        return Results.Ok(new
+        {
+            success = true,
+            message = "Ključ učitan i primenjen!",
+            keyHex = BitConverter.ToString(key).Replace("-", "")
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.Json(new { success = false, error = ex.Message }, statusCode: 500);
+    }
+});
+
+
+app.MapGet("/api/current-key", () =>
+{
+    return Results.Ok(new
+    {
+        keyHex = BitConverter.ToString(CryptoHelperNamespace.CryptoHelper.EncryptionKey).Replace("-", "")
+    });
+});
+
+
+
+
 app.Run();
 
-// Helper funkcija
+
 static bool IsPortAvailable(int port)
 {
     try

@@ -16,7 +16,7 @@ namespace Logging
             {
                 File.AppendAllText(logFile, logMessage + Environment.NewLine);
             }
-            catch { /* Ignoriši greške */ }
+            catch { }
         }
     }
 }

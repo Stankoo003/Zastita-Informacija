@@ -11,11 +11,13 @@ namespace CryptoHelperNamespace.Ciphers
         private readonly byte[] iv;
         private readonly int blockSize = 16;
 
-        public CBC(XXTEA algorithm, byte[] iv = null)
+        public CBC(XXTEA algorithm, byte[]? iv = null)
         {
             this.algorithm = algorithm ?? throw new ArgumentNullException(nameof(algorithm));
+
             if (iv == null)
             {
+                
                 this.iv = GenerateRandomIV(blockSize);
             }
             else
@@ -52,21 +54,27 @@ namespace CryptoHelperNamespace.Ciphers
             if (data.Length < blockSize)
                 throw new Exception("Šifrovani podaci su prekratki");
 
+            
             byte[] iv = new byte[blockSize];
             Array.Copy(data, 0, iv, 0, blockSize);
 
-            int encryptedBlocksLength = data.Length - blockSize;
-            if (encryptedBlocksLength % blockSize != 0)
-                throw new Exception("Šifrovani podaci nisu povezani po bloku");
+            
+            int encryptedDataLength = data.Length - blockSize;
+            if (encryptedDataLength % blockSize != 0)
+                throw new Exception("Šifrovani podaci nisu deljivi sa blok veličinom (16 bajtova)");
 
-            byte[] blocksData = new byte[encryptedBlocksLength];
-            Array.Copy(data, blockSize, blocksData, 0, encryptedBlocksLength);
+            byte[] encryptedData = new byte[encryptedDataLength];
+            Array.Copy(data, blockSize, encryptedData, 0, encryptedDataLength);
 
-            List<byte[]> blocks = SplitIntoBlocks(blocksData, blockSize);
+            
+            List<byte[]> blocks = SplitIntoBlocks(encryptedData, blockSize);
             List<byte[]> decryptedBlocks = DecryptBlocks(blocks, iv);
             byte[] decryptedData = FlattenBlocks(decryptedBlocks);
+
+            
             return RemovePadding(decryptedData);
         }
+
 
         public byte[] GetIV() => iv;
 

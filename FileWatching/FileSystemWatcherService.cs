@@ -27,21 +27,21 @@ namespace FileWatching
                 onMessage?.Invoke($"📁 Kreiran folder: {targetPath}");
             }
 
-            // Kreiraj encrypted folder ako ne postoji
+            
             Directory.CreateDirectory("encrypted");
 
             watcher = new FileSystemWatcher(targetPath);
 
-            // Prati sve fajlove
+            
             watcher.Filter = "*.*";
 
-            // Prati kreiranje novih fajlova
+            
             watcher.NotifyFilter = NotifyFilters.FileName | NotifyFilters.CreationTime;
 
-            // Event kada se doda novi fajl
+            
             watcher.Created += OnFileCreated;
 
-            // Pokreni praćenje
+            
             watcher.EnableRaisingEvents = true;
 
             onMessage?.Invoke($"👁️ FSW pokrenut - pratim folder: {targetPath}");
@@ -53,25 +53,25 @@ namespace FileWatching
         {
             try
             {
-                // Sačekaj da se fajl potpuno zapiše
+                
                 System.Threading.Thread.Sleep(500);
 
                 onMessage?.Invoke($"📁 Detektovan novi fajl: {Path.GetFileName(e.FullPath)}");
                 Logger.Log($"FSW detected file: {e.Name}");
 
-                // Pročitaj fajl
+                
                 byte[] fileData = File.ReadAllBytes(e.FullPath);
                 onMessage?.Invoke($"📖 Veličina: {fileData.Length} bajtova");
 
-                // Enkriptuj
+                
                 onMessage?.Invoke($"🔒 Automatski enkriptujem...");
                 byte[] encryptedData = CryptoHelper.EncryptData(fileData, algorithm);
 
-                // Računaj heš
+                
                 var tigerHash = new Hashing.TigerHash();
                 string receivedHash = tigerHash.ComputeHash(encryptedData);
 
-                // Kreiraj metadata
+                
                 string metadata = MetadataHandler.CreateMetadata(
                     Path.GetFileName(e.FullPath),
                     encryptedData,
@@ -80,7 +80,7 @@ namespace FileWatching
                     receivedHash
                 );
 
-                // Sačuvaj u encrypted folder
+                
                 string encryptedPath = Path.Combine("encrypted", Path.GetFileName(e.FullPath) + ".enc");
                 string metadataPath = encryptedPath + ".meta";
 

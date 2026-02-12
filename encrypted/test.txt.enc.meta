@@ -1,8 +1,0 @@
-{
-  "Filename": "test.txt",
-  "FileSize": 16,
-  "CreatedDate": "2026-02-11 14:36:22",
-  "EncryptionAlgorithm": "XXTEA-CBC",
-  "HashAlgorithm": "Tiger (SHA1)",
-  "FileHash": "4c5a48ecc24d4b21a312df3e132b2b2a526768fe"
-}
