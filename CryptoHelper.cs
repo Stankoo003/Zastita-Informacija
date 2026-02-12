@@ -77,15 +77,27 @@ namespace CryptoHelperNamespace
         }
 
         public static void SaveDecryptedFile(string encryptedFilename, byte[] data)
-        {
-            string decryptedDir = "decrypted";
-            Directory.CreateDirectory(decryptedDir);
+{
+    string decryptedDir = "decrypted";
+    Directory.CreateDirectory(decryptedDir);
+    string originalName;   
+    if (encryptedFilename.EndsWith(".enc", StringComparison.OrdinalIgnoreCase))
+    {
+        originalName = encryptedFilename.Substring(0, encryptedFilename.Length - 4);
+    }
+    else if (encryptedFilename.EndsWith(".crypt", StringComparison.OrdinalIgnoreCase))
+    {
+        originalName = encryptedFilename.Substring(0, encryptedFilename.Length - 6);
+    }
+    else
+    {
+        originalName = encryptedFilename;
+    }
+    
+    string decryptedPath = Path.Combine(decryptedDir, originalName);
+    File.WriteAllBytes(decryptedPath, data);
+    Console.WriteLine($"💾 Dekriptovano: {decryptedPath}");
+}
 
-            string originalName = Path.GetFileNameWithoutExtension(encryptedFilename);
-            string decryptedPath = Path.Combine(decryptedDir, originalName);
-
-            File.WriteAllBytes(decryptedPath, data);
-            Console.WriteLine($"💾 Dekriptovano: {decryptedPath}");
-        }
     }
 }
